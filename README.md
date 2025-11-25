@@ -1,42 +1,38 @@
-📚 Sistema de Barbearia
+💈 Sistema de Gestão - ItaBarbearia
 
-Discentes : Lucas Augusto e Jonny Marcus
+Discentes: Lucas Augusto e Jonny Marcus
 
 Docente: Adler Diniz de Souza
 
-#Projeto – Sistema de Agendamento da Itabarbearia
+🗓 Cronograma
+Cronograma (Trello): https://trello.com/b/K9OaFLNH/meu-quadro-do-trello
 
-Este projeto foi desenvolvido como parte da disciplina de Engenharia de Software, tendo como objetivo criar um sistema para um aplicativo de gerenciamento e agendamento de serviços da barbearia Itabarbearia.
+📜 Descrição
 
+O Sistema de Gestão ItaBarbearia é uma ferramenta desenvolvida para gerenciar de forma organizada e eficiente todas as operações e o fluxo de atendimento da barbearia. O sistema permite controlar:
 
-📌 Objetivo do Projeto
-O sistema tem como foco modernizar o atendimento da barbearia, permitindo que clientes realizem agendamentos de forma prática e rápida, diretamente pelo aplicativo, sem necessidade de ligação ou espera presencial.
+Clientes: cadastro detalhado e histórico de atendimento.
 
-🧔 Funcionalidades Principais Para clientes:
+Profissionais: gestão da equipe de barbeiros e suas agendas.
 
-Cadastro de usuário
-Consulta de barbeiros e serviços disponíveis
-Visualização de horários livres
-Agendamento de horários
-Histórico de atendimentos
-Avaliação de serviços
-Para barbeiros e administração:
-Gerenciamento de agenda
-Cadastro e edição de serviços
-Consulta de horários marcados
-Gestão de clientes
-Acompanhamento de estatísticas
+Agendamentos: controle total de horários, status de serviço (agendado, concluído, cancelado) e disponibilidade.
 
-🧠 Aplicação de Engenharia de Software
+Estoque e Serviços: monitoramento de produtos e catálogo de preços.
 
-Durante o desenvolvimento foram aplicados conceitos da área, como:
-Levantamento e análise de requisitos
-Modelagem de casos de uso
-Diagramação e documentação
-Prototipação de telas
-Definição da arquitetura do sistema
+Com essas funcionalidades, o sistema oferece uma visão completa do negócio, facilitando a administração, reduzindo falhas de agendamento e garantindo que todas as operações sejam monitoradas em tempo real através de indicadores visuais.
 
-🎯 Resultado Esperado
+🌐 Propósito
 
-O resultado é um sistema completo e funcional, que melhora o atendimento ao cliente, organiza o fluxo de serviços da barbearia e torna a Itabarbearia mais moderna, eficiente e conectada às necessidades de seus usuários.
-📎 Este repositório pode conter a documentação, diagramas, protótipos e código desenvolvido durante o projeto.
+O sistema tem como objetivo organizar e simplificar a gestão da barbearia, permitindo que recepcionistas e gerentes controlem de forma eficiente o fluxo de caixa, a produtividade da equipe e o nível de estoque. Ele busca garantir a excelência no atendimento ao cliente através de uma agenda organizada, evitando conflitos de horário e permitindo uma administração mais ágil, precisa e baseada em dados (Dashboard).
+
+🛠 Funcionalidades
+
+Gerenciamento de Clientes: cadastro com validação de dados (CPF/Telefone), atualização e exclusão segura.
+
+Controle de Agenda: marcação visual de horários, verificação de disponibilidade e alteração de status (conclusão/cancelamento).
+
+Gestão de Estoque: visualização de produtos com indicadores de nível (crítico, atenção, bom) para reposição eficiente.
+
+Dashboard Gerencial: painel com métricas de faturamento, serviços mais populares, taxa de no-show e desempenho individual dos barbeiros.
+
+Cadastro de Serviços e Barbeiros: manutenção das informações de preços, duração de serviços e equipe disponível.
