@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial - ItaBarbearia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --bg-color: #121212; --card-color: #1e1e1e; --text-color: #e0e0e0; --primary-color: #d4af37; --primary-hover: #b5952f; --input-bg: #2c2c2c; --border-color: #444; --danger-color: #c53030; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 1100px; }
+        h1 { text-align: center; color: var(--primary-color); text-transform: uppercase; margin-bottom: 25px; }
+        
+        /* Grid Layout Principal conforme PDF Pág 18 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* 3 colunas */
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+        }
+
+        /* Classes dos Cards */
+        .card { background-color: var(--card-color); padding: 20px; border-radius: 10px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card h3 { margin-top: 0; font-size: 1rem; color: #aaa; margin-bottom: 10px; }
+        
+        /* Estilos Específicos */
+        .big-number { font-size: 2.5rem; font-weight: bold; color: var(--primary-color); }
+        .filter-box { display: flex; gap: 10px; align-items: center; }
+        
+        select, button { padding: 10px; border-radius: 5px; border: none; font-weight: bold; }
+        select { background: var(--input-bg); color: white; border: 1px solid var(--border-color); flex-grow: 1; }
+        button { background: var(--primary-color); cursor: pointer; color: #121212; }
+        button:hover { background: var(--primary-hover); }
+
+        /* Tabelas Internas */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #333; font-size: 0.9rem; }
+        th { color: var(--primary-color); }
+        
+        /* Posicionamento dos Elementos no Grid (Tentando imitar o PDF) */
+        
+        /* Filtro: Canto Superior Esquerdo */
+        .area-filtro { grid-column: 1 / 2; }
+        
+        /* Faturamento: Abaixo do Filtro */
+        .area-faturamento { grid-column: 1 / 2; grid-row: 2 / 3; display: flex; flex-direction: column; justify-content: center; }
+        
+        /* Gráfico Serviços: Ocupa Direita Superior (2 colunas) */
+        .area-grafico { grid-column: 2 / 4; grid-row: 1 / 3; }
+        
+        /* Barbeiros: Canto Inferior Esquerdo (2 colunas de largura) */
+        .area-barbeiros { grid-column: 1 / 3; grid-row: 3 / 4; }
+        
+        /* Coluna da Direita Inferior (Taxas e Estoque) */
+        .area-kpis-small { grid-column: 3 / 4; grid-row: 3 / 4; display: flex; flex-direction: column; gap: 20px; }
+
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-chart-line"></i> Dashboard Gerencial</h1>
+
+    <div class="dashboard-grid">
+        
+        <div class="card area-filtro">
+            <h3>Período</h3>
+            <div class="filter-box">
+                <select id="filtroPeriodo">
+                    <option value="hoje">Hoje</option>
+                    <option value="7dias">Últimos 7 dias</option>
+                    <option value="mes">Este Mês</option>
+                </select>
+                <button onclick="carregarDashboard()">Filtrar</button>
+            </div>
+        </div>
+
+        <div class="card area-faturamento">
+            <h3>Faturamento</h3>
+            <div class="big-number" id="valorFaturamento">R$ 0,00</div>
+        </div>
+
+        <div class="card area-grafico">
+            <h3>Serviços</h3>
+            <canvas id="graficoServicos"></canvas>
+        </div>
+
+        <div class="card area-barbeiros">
+            <h3>Desempenho</h3>
+            <table>
+                <thead>
+                    <tr><th>Nome</th><th>Atividades</th><th>Avaliação</th></tr>
+                </thead>
+                <tbody id="tabelaBarbeiros">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="area-kpis-small">
+            
+            <div class="card">
+                <h3>Taxa de No-Show</h3>
+                <div class="big-number" id="valorNoShow">0%</div>
+            </div>
+
+            <div class="card" style="flex-grow: 1;">
+                <h3>Estoque Baixo</h3>
+                <table>
+                    <thead><tr><th>Produto</th><th>Qtd</th></tr></thead>
+                    <tbody id="tabelaEstoque">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const API = "http://127.0.0.1:5000";
+let chartInstance = null;
+
+async function carregarDashboard() {
+    const periodo = document.getElementById("filtroPeriodo").value;
+    
+    try {
+        const res = await fetch(`${API}/dashboard-data?periodo=${periodo}`);
+        const dados = await res.json();
+
+        // 1. Atualiza Faturamento
+        document.getElementById("valorFaturamento").innerText = 
+            dados.faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // 2. Atualiza Taxa No-Show
+        document.getElementById("valorNoShow").innerText = dados.taxa_noshow + "%";
+
+        // 3. Tabela Barbeiros
+        const tabBarbeiro = document.getElementById("tabelaBarbeiros");
+        tabBarbeiro.innerHTML = "";
+        dados.barbeiros.forEach(b => {
+            tabBarbeiro.innerHTML += `
+                <tr>
+                    <td>${b.nome}</td>
+                    <td>${b.cortes}</td>
+                    <td><i class="fas fa-star" style="color: gold;"></i> ${b.avaliacao}</td>
+                </tr>`;
+        });
+
+        // 4. Tabela Estoque Baixo
+        const tabEstoque = document.getElementById("tabelaEstoque");
+        tabEstoque.innerHTML = "";
+        if(dados.estoque_baixo.length === 0){
+            tabEstoque.innerHTML = "<tr><td colspan='2'>Estoque ok!</td></tr>";
+        } else {
+            dados.estoque_baixo.forEach(p => {
+                tabEstoque.innerHTML += `<tr><td>${p.nome}</td><td style="color: var(--danger-color); font-weight:bold;">${p.qtd}</td></tr>`;
+            });
+        }
+
+        // 5. Gráfico (Chart.js)
+        atualizarGrafico(dados.grafico_labels, dados.grafico_data);
+
+    } catch (error) {
+        console.error("Erro ao carregar dashboard:", error);
+        alert("Erro ao conectar com o servidor.");
+    }
+}
+
+function atualizarGrafico(labels, data) {
+    const ctx = document.getElementById('graficoServicos').getContext('2d');
+    
+    if (chartInstance) {
+        chartInstance.destroy(); // Destroi anterior para criar novo
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Qtd Realizada',
+                data: data,
+                backgroundColor: '#d4af37',
+                borderColor: '#b5952f',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
+                x: { grid: { display: false }, ticks: { color: '#aaa' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+// Carregar ao abrir
+window.onload = carregarDashboard;
+</script>
+
+</body>
+</html>

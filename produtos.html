@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque - ItaBarbearia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg-color: #121212; --card-color: #1e1e1e; --text-color: #e0e0e0; --primary-color: #d4af37; --primary-hover: #b5952f; --input-bg: #2c2c2c; --border-color: #444; --danger-color: #c53030; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 900px; }
+        h1, h2 { text-align: center; color: var(--primary-color); text-transform: uppercase; margin-bottom: 25px; }
+        .card { background-color: var(--card-color); padding: 25px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } 
+        .input-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+        label { margin-bottom: 5px; font-weight: bold; color: #aaa; }
+        input { padding: 12px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 5px; color: white; width: 100%; box-sizing: border-box; }
+        input:focus { border-color: var(--primary-color); }
+        button { padding: 12px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        .btn-primary { background-color: var(--primary-color); width: 100%; margin-top: 15px; }
+        .btn-ghost { background-color: #444; color: white; }
+        .btn-edit { background-color: #2b6cb0; color: white; padding: 8px 12px; }
+        .btn-delete { background-color: var(--danger-color); color: white; padding: 8px 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background-color: var(--input-bg); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #333; color: var(--primary-color); }
+        tr:hover { background-color: #3a3a3a; }
+        .toast { position: fixed; right: 20px; bottom: 20px; background-color: #1e1e1e; color: var(--primary-color); padding: 15px; border: 1px solid var(--primary-color); display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><i class="fas fa-boxes"></i> Estoque de Produtos</h1>
+    <div class="card">
+        <h2><i class="fas fa-box-open"></i> Gerenciar Produto</h2>
+        <div class="form-grid">
+            <div class="input-group"><label>Nome</label><input id="nome"></div>
+            <div class="input-group"><label>Preço (R$)</label><input id="preco" type="number" step="0.01"></div>
+            <div class="input-group"><label>Quantidade</label><input id="qtd" type="number"></div>
+            <div class="input-group"><label>Fornecedor</label><input id="forn"></div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="btnSalvar" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            <button id="btnCancelar" class="btn-ghost" style="margin-top: 15px;"><i class="fas fa-ban"></i></button>
+        </div>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-list"></i> Lista de Produtos</h2>
+        <div style="overflow-x:auto;"><table id="tbl"><thead><tr><th>Nome</th><th>Preço</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const API = "http://127.0.0.1:5000";
+let editId = null;
+function showToast(msg){ const t=document.getElementById("toast"); t.innerText=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",3000); }
+
+async function carregarTabela(){
+    const res = await fetch(`${API}/produto`);
+    const dados = await res.json();
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    dados.forEach(p => {
+        tbody.innerHTML += `<tr>
+            <td>${p.nome}</td><td>R$ ${parseFloat(p.preco).toFixed(2)}</td><td>${p.quantidade}</td><td>${p.fornecedor}</td>
+            <td>
+                <button class="btn-edit" onclick="abrirEdicao(${p.id}, '${p.nome}', ${p.preco}, ${p.quantidade}, '${p.fornecedor}')"><i class="fas fa-edit"></i></button>
+                <button class="btn-delete" onclick="remover(${p.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    });
+}
+
+document.getElementById("btnSalvar").onclick = async () => {
+    const payload = { nome: document.getElementById("nome").value, preco: document.getElementById("preco").value, quantidade: document.getElementById("qtd").value, fornecedor: document.getElementById("forn").value };
+    const method = editId ? "PUT" : "POST";
+    const url = editId ? `${API}/produto/${editId}` : `${API}/produto`;
+    await fetch(url, { method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+    showToast("Salvo!"); resetForm(); carregarTabela();
+};
+
+function abrirEdicao(id, nome, preco, qtd, forn){
+    editId = id;
+    document.getElementById("nome").value = nome; document.getElementById("preco").value = preco; document.getElementById("qtd").value = qtd; document.getElementById("forn").value = forn;
+    document.getElementById("btnSalvar").innerHTML = '<i class="fas fa-sync-alt"></i> Atualizar';
+    window.scrollTo({top:0, behavior:'smooth'});
+}
+async function remover(id){ if(confirm("Remover?")) { await fetch(`${API}/produto/${id}`, { method: "DELETE" }); carregarTabela(); } }
+function resetForm(){ editId = null; document.querySelectorAll("input").forEach(i => i.value = ""); document.getElementById("btnSalvar").innerHTML = '<i class="fas fa-save"></i> Salvar'; }
+document.getElementById("btnCancelar").onclick = resetForm;
+window.onload = carregarTabela;
+</script>
+</body>
+</html>
