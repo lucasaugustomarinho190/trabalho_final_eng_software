@@ -4,8 +4,7 @@ Discentes: Lucas Augusto e Jonny Marcus
 
 Docente: Adler Diniz de Souza
 
-🗓 Cronograma
-Cronograma (Trello): https://trello.com/b/K9OaFLNH/meu-quadro-do-trello
+🗓 Cronograma (Trello): https://trello.com/b/K9OaFLNH/meu-quadro-do-trello
 
 📜 Descrição
 
